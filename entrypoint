@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Function to check the exit status of a command and exit if it fails
+check_status() {
+    if [ $? -ne 0 ]; then
+        echo "Error: Step $1 failed"
+        exit 1
+    fi
+}
+
+# Step 1: Execute 'docker-compose build'
+echo "Step 1: Building Docker containers"
+docker-compose build
+check_status 1
+
+# Step 2: Execute 'docker-compose up'
+echo "Step 2: Starting Docker containers"
+docker-compose up -d
+check_status 2
+
+echo "Wait 30 seconds for initialized container to be available"
+sleep 30
+
+# Step 3: Execute the Python script main.py from inside message_pipeline docker container
+echo "Step 3: Executing main.py from message_pipeline container"
+
+if [[ "$(docker ps -q -f name=score_ingestion-postgres-1)" ]]; then
+  # Execute main.py within the container
+  echo "Postgres DB is up and running"
+  docker exec -it score_ingestion-message_pipeline-1 python3 /main.py
+else
+  echo "PostgresDB is 'warming up'. Please run ./entrypoint bash script again"
+fi
+check_status 3
+
+# Done
+echo "Pipeline is ON"

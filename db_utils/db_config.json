@@ -1,0 +1,9 @@
+{
+    "db_params" : {
+        "dbname": "postgres",
+        "user": "postgres",
+        "password": "postgres",
+        "host": "postgres",
+        "port": "5432"
+    }
+}
